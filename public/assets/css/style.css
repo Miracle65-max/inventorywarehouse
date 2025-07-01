@@ -1,0 +1,420 @@
+/* SBT Warehouse Inventory - WordPress-inspired Design */
+:root {
+    --primary-color: #0073aa;
+    --primary-hover: #005a87;
+    --secondary-color: #f1f1f1;
+    --success-color: #46b450;
+    --warning-color: #ffb900;
+    --danger-color: #dc3232;
+    --text-color: #23282d;
+    --border-color: #ddd;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+    --radius: 4px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    background-color: #f1f1f1;
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* HEADER STYLES */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    overflow: visible; /* allow dropdowns to show */
+}
+.header-content {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0px;
+    height: 60px;
+    position: relative;
+    overflow: visible;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    gap: 12px;
+    margin-left: 0;
+}
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-decoration: none;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    height: 40px;
+    line-height: 40px;
+    padding-left: 24px;
+}
+.logo img {
+    height: 40px;
+    width: auto;
+    margin-right: 10px;
+    display: block;
+}
+.ph-time {
+    margin-left: 24px;
+    font-size: 1rem;
+    color: #666;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    height: 40px;
+    display: flex;
+    align-items: center;
+}
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 60px;
+    margin-right: 24px;
+}
+.notification-dropdown {
+    position: relative;
+    margin-right: 10px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+}
+.notification-bell {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 22px;
+    cursor: pointer;
+    position: relative;
+    padding: 5px;
+    outline: none;
+    transition: color 0.2s;
+    height: 40px;
+    display: flex;
+    align-items: center;
+}
+.notification-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: var(--danger-color);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 1px 4px rgba(220, 50, 50, 0.12);
+}
+.notification-dropdown-panel {
+    display: none;
+    position: absolute;
+    top: 110%;
+    right: 0;
+    width: 350px;
+    max-height: 400px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1002;
+    overflow: hidden;
+    animation: fadeInModal 0.2s;
+}
+.user-avatar,
+.user-avatar-placeholder {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #f1f1f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-right: 8px;
+    border: 1px solid #e5e7eb;
+    object-fit: cover;
+}
+.user-avatar-placeholder span {
+    color: #bbb;
+    font-size: 1.3rem;
+}
+.user-info {
+    font-size: 1rem;
+    color: var(--text-color);
+    font-weight: 500;
+    margin-right: 0;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    height: 40px;
+}
+@media (max-width: 900px) {
+    .header-content {
+        padding: 0 4px;
+    }
+    .logo {
+        padding-left: 4px;
+    }
+    .user-menu {
+        margin-right: 4px;
+    }
+}
+@media (max-width: 600px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        height: auto;
+        padding: 0 2px;
+    }
+    .user-menu {
+        gap: 8px;
+        margin-right: 2px;
+    }
+    .logo {
+        font-size: 1.1rem;
+        padding-left: 2px;
+    }
+    .ph-time {
+        font-size: 0.9rem;
+        margin-left: 8px;
+    }
+}
+
+/* Notification Type Borders */
+.border-success {
+    border-left: 4px solid var(--success-color) !important;
+}
+.border-warning {
+    border-left: 4px solid var(--warning-color) !important;
+}
+.border-danger {
+    border-left: 4px solid var(--danger-color) !important;
+}
+.border-info {
+    border-left: 4px solid #17a2b8 !important;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Notifications Styles */
+.notifications-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.2s;
+}
+
+.notification-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notification-item.read {
+    background: #f9f9f9;
+}
+
+.notification-item.unread {
+    background: #fff;
+    border-left: 4px solid var(--primary-color);
+}
+
+.badge-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .notifications-list {
+        max-height: none;
+    }
+}
+
+/* Register/Login Page Styles */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f1f1;
+    padding: 32px 8px;
+}
+.login-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 0;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+    padding: 36px 32px 28px 32px;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+}
+.login-logo {
+    text-align: center;
+    margin-bottom: 18px;
+}
+.login-logo h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 2px;
+}
+.login-logo p {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+.form-group {
+    margin-bottom: 18px;
+}
+.form-label {
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: block;
+    color: #23282d;
+}
+.form-control {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 15px;
+    border: 1px solid #ccd0d4;
+    border-radius: 0;
+    background: #fff;
+    color: #23282d;
+    box-shadow: none;
+    transition: border-color 0.2s;
+}
+.form-control:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 1px var(--primary-color);
+}
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+.form-col {
+    flex: 1 1 0;
+}
+.btn {
+    display: inline-block;
+    padding: 8px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid var(--primary-color);
+    border-radius: 0;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    background: var(--primary-color);
+    color: #fff;
+    box-shadow: none;
+    outline: none;
+}
+.btn-primary {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+.btn-primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+.btn-secondary {
+    background: #3c343c;
+    color: #fff;
+    border-color: #3c343c;
+}
+.btn-secondary:hover {
+    background: #23282d;
+    border-color: #23282d;
+}
+.btn-lg {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+.w-100 {
+    width: 100%;
+}
+.alert {
+    padding: 12px 18px;
+    border-radius: 0;
+    margin-bottom: 18px;
+    font-size: 1rem;
+}
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+@media (max-width: 600px) {
+    .login-card {
+        padding: 18px 6px 18px 6px;
+    }
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}

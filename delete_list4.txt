@@ -1,0 +1,6 @@
+resources/views/profile/partials/update-profile-information-form.blade.php
+resources/views/profile/partials/update-password-form.blade.php
+resources/views/profile/partials/delete-user-form.blade.php
+resources/views/profile/show.blade.php
+app/Http/Controllers/UserProfileController.php
+public/assets/css/user-profile.css

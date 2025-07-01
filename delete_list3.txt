@@ -1,0 +1,3 @@
+resources/views/profile/show.blade.php
+app/Http/Controllers/UserProfileController.php
+public/assets/css/user-profile.css

@@ -1,0 +1,3 @@
+resources/views/profile/partials/update-profile-information-form.blade.php
+resources/views/profile/partials/update-password-form.blade.php
+resources/views/profile/partials/delete-user-form.blade.php
