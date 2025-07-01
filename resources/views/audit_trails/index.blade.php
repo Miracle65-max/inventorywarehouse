@@ -48,10 +48,10 @@
         </div>
     </form>
     <!-- Table -->
-    <div class="overflow-x-auto bg-white rounded shadow table-responsive">
+    <div style="max-height: 520px; overflow-y: auto;" class="bg-white rounded shadow table-responsive">
         <table class="table min-w-full text-sm">
             <thead>
-                <tr class="bg-gray-100">
+                <tr class="bg-gray-100 sticky top-0 z-10" style="position: sticky; top: 0;">
                     <th class="px-4 py-2 text-left">When</th>
                     <th class="px-4 py-2 text-left">Who</th>
                     <th class="px-4 py-2 text-left">Module</th>
@@ -62,85 +62,49 @@
             </thead>
             <tbody>
                 @forelse($auditTrails as $trail)
-                <tr class="border-t hover:bg-gray-50">
-                    <td class="px-4 py-2 text-gray-600 timestamp whitespace-nowrap">
+                <tr class="border-t hover:bg-gray-50" style="height: 36px;">
+                    <td class="px-2 py-1 text-gray-600 timestamp whitespace-nowrap overflow-hidden text-ellipsis" style="max-width: 80px;">
                         {{ \Carbon\Carbon::parse($trail->timestamp ?? $trail->created_at)->format('m/d H:i') }}
                     </td>
-                    <td class="px-4 py-2">{{ $trail->user->username ?? $trail->user->full_name ?? '-' }}</td>
-                    <td class="px-4 py-2"><span class="module-badge bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-700">{{ $trail->module ?? 'General' }}</span></td>
-                    <td class="px-4 py-2 max-w-[150px] truncate">{{ $trail->action }}</td>
-                    <td class="audit-details px-4 py-2 max-w-[250px] text-gray-600 cursor-pointer" title="{{ is_array($trail->details) ? json_encode($trail->details) : $trail->details }}">
-                        @php
-                            $details = is_array($trail->details) ? $trail->details : json_decode($trail->details, true);
-                        @endphp
-                        @if(is_array($details))
-                            @switch($trail->module)
-                                @case('Dashboard')
-                                    @if(isset($details['stats']))
-                                        Items: {{ number_format($details['stats']['total_items'] ?? 0) }} (Low: {{ number_format($details['stats']['low_stock'] ?? 0) }}) |
-                                        Suppliers: {{ number_format($details['stats']['total_suppliers'] ?? 0) }} |
-                                        Today's Moves: {{ number_format($details['stats']['today_movements'] ?? 0) }}
-                                    @endif
-                                    @break
-                                @case('Inventory')
-                                    Item: {{ $details['item_code'] ?? '' }} - {{ $details['item_name'] ?? '' }} |
-                                    Qty: {{ $details['quantity'] ?? '' }}
-                                    @if(isset($details['action_type'])) | Type: {{ ucfirst($details['action_type']) }} @endif
-                                    @if(isset($details['defect_reason'])) | Reason: {{ $details['defect_reason'] }} @endif
-                                    @break
-                                @case('Sales')
-                                    @if(isset($details['order_id']))
-                                        Order #{{ $details['order_id'] }}
-                                        @if(isset($details['customer_name'])) | Customer: {{ $details['customer_name'] }} @endif
-                                        @if(isset($details['total_amount'])) | Amount: ₱{{ number_format($details['total_amount'], 2) }} @endif
-                                        @if(isset($details['items_count'])) | Items: {{ $details['items_count'] }} @endif
-                                        @if(isset($details['old_status']) && isset($details['new_status'])) | Status: {{ $details['old_status'] }} → {{ $details['new_status'] }} @endif
-                                    @endif
-                                    @break
-                                @case('Auth')
-                                    @if(isset($details['action_type']))
-                                        {{ ucfirst($details['action_type']) }}
-                                        @if(isset($details['username'])) | User: {{ $details['username'] }} @endif
-                                        @if(isset($details['role'])) | Role: {{ ucfirst($details['role']) }} @endif
-                                        @if(isset($details['reason'])) | Reason: {{ $details['reason'] }} @endif
-                                    @endif
-                                    @break
-                                @case('Users')
-                                    User: {{ $details['username'] ?? '' }}
-                                    @if(isset($details['action_type'])) | Action: {{ ucfirst($details['action_type']) }} @endif
-                                    @if(isset($details['old_status']) && isset($details['new_status'])) | Status: {{ ucfirst($details['old_status']) }} → {{ ucfirst($details['new_status']) }} @endif
-                                    @if(isset($details['reason'])) | Reason: {{ $details['reason'] }} @endif
-                                    @break
-                                @case('Profile')
-                                    @if(isset($details['action_type']) && $details['action_type'] === 'avatar_update')
-                                        Updated profile picture
-                                    @elseif(isset($details['changes']))
-                                        @php $changes = []; @endphp
-                                        @foreach($details['changes'] as $field => $new_value)
-                                            @php $old_value = $details['old_data'][$field] ?? 'Not set'; @endphp
-                                            @php $changes[] = ucwords(str_replace('_', ' ', $field)).": $old_value → ".($new_value ?: 'Not set'); @endphp
-                                        @endforeach
-                                        {{ implode(' | ', $changes) }}
-                                    @endif
-                                    @break
-                                @default
-                                    @php $formatted = ''; @endphp
-                                    @foreach($details as $key => $value)
-                                        @if(is_array($value))
-                                            @foreach($value as $subKey => $subValue)
-                                                @php $formatted .= ucwords(str_replace('_', ' ', $subKey)).": ".(is_array($subValue) ? json_encode($subValue) : $subValue)." | "; @endphp
-                                            @endforeach
-                                        @else
-                                            @php $formatted .= ucwords(str_replace('_', ' ', $key)).": ".$value." | "; @endphp
-                                        @endif
-                                    @endforeach
-                                    {{ rtrim($formatted, ' | ') }}
-                            @endswitch
+                    <td class="px-2 py-1 overflow-hidden text-ellipsis whitespace-nowrap" style="max-width: 160px;">
+                        @if($trail->user)
+                            {{ $trail->user->full_name }}
+                            @if($trail->user->username)
+                                <span class="text-xs text-gray-500">({{ $trail->user->username }})</span>
+                            @endif
                         @else
-                            {{ is_array($trail->details) ? json_encode($trail->details) : $trail->details }}
+                            -
                         @endif
                     </td>
-                    <td class="px-4 py-2 text-xs text-gray-600">{{ $trail->ip_address }}</td>
+                    <td class="px-2 py-1"><span class="module-badge bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-700">{{ $trail->module ?? 'General' }}</span></td>
+                    <td class="px-2 py-1 truncate" style="max-width: 150px;">{{ $trail->action }}</td>
+                    <td class="audit-details px-2 py-1 max-w-[220px] text-gray-600 cursor-pointer overflow-hidden text-ellipsis details-tooltip-container" style="max-width: 220px; position: relative;">
+                        @php
+                            $details = is_array($trail->details) ? $trail->details : json_decode($trail->details, true);
+                            $preview = '';
+                            $tooltipLines = [];
+                            if(is_array($details) && count($details)) {
+                                foreach($details as $key => $value) {
+                                    $line = ucwords(str_replace('_', ' ', $key)).': '.(is_array($value) ? json_encode($value) : $value);
+                                    $preview .= $line.'; ';
+                                    $tooltipLines[] = $line;
+                                }
+                            }
+                        @endphp
+                        @if($preview)
+                            <span class="details-preview" style="display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle;">
+                                {{ rtrim($preview, '; ') }}
+                            </span>
+                            <div class="details-tooltip">
+                                @foreach($tooltipLines as $line)
+                                    <div>{{ $line }}</div>
+                                @endforeach
+                            </div>
+                        @else
+                            <span class="italic text-gray-400">No details</span>
+                        @endif
+                    </td>
+                    <td class="px-2 py-1 text-xs text-gray-600" style="max-width: 120px; overflow: hidden; text-overflow: ellipsis;">{{ $trail->ip_address }}</td>
                 </tr>
                 @empty
                 <tr>
@@ -178,4 +142,32 @@
         @endif
     </div>
 </div>
+<style>
+.details-tooltip-container {
+    position: relative;
+}
+.details-tooltip {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 20;
+    min-width: 220px;
+    max-width: 350px;
+    background: #fff;
+    color: #222;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 4px 16px 0 rgba(0,0,0,0.10);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.95em;
+    white-space: pre-line;
+    word-break: break-word;
+    margin-top: 0.25rem;
+}
+.details-tooltip-container:hover .details-tooltip,
+.details-tooltip-container:focus-within .details-tooltip {
+    display: block;
+}
+</style>
 @endsection

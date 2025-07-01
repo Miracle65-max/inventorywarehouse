@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\AuditTrail;
 
 class SupplierController extends Controller
 {
@@ -29,7 +31,16 @@ class SupplierController extends Controller
             'notes' => 'nullable|string',
             'status' => 'nullable|string|max:20',
         ]);
-        Supplier::create($validated);
+        $supplier = Supplier::create($validated);
+        // Audit trail log
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'module' => 'Suppliers',
+            'action' => 'Created supplier: ' . $supplier->supplier_name,
+            'details' => $supplier->toArray(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
         return redirect()->route('suppliers.index')->with('success', 'Supplier created successfully!');
     }
 
@@ -56,12 +67,32 @@ class SupplierController extends Controller
             'status' => 'nullable|string|max:20',
         ]);
         $supplier->update($validated);
+        // Audit trail log
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'module' => 'Suppliers',
+            'action' => 'Updated supplier: ' . $supplier->supplier_name,
+            'details' => $supplier->toArray(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
         return redirect()->route('suppliers.index')->with('success', 'Supplier updated successfully!');
     }
 
     public function destroy(Supplier $supplier)
     {
+        $supplierName = $supplier->supplier_name;
+        $supplierData = $supplier->toArray();
         $supplier->delete();
+        // Audit trail log
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'module' => 'Suppliers',
+            'action' => 'Deleted supplier: ' . $supplierName,
+            'details' => $supplierData,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
         return redirect()->route('suppliers.index')->with('success', 'Supplier deleted successfully!');
     }
 }

@@ -10,6 +10,7 @@ use App\Models\DefectiveItem;
 use App\Models\BorrowedItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\AuditTrail;
 
 class StockMovementController extends Controller
 {
@@ -88,6 +89,27 @@ class StockMovementController extends Controller
                 'new_total_quantity' => $new_total,
                 'user_id' => $user->id,
                 'remarks' => $request->remarks,
+            ]);
+            
+            // Audit trail log
+            AuditTrail::create([
+                'user_id' => $user->id,
+                'module' => 'Stock Movements',
+                'action' => 'Recorded stock movement: ' . ucfirst($request->movement_type),
+                'details' => [
+                    'item_id' => $item->item_id,
+                    'item_name' => $item->item_name,
+                    'movement_type' => $request->movement_type,
+                    'quantity_changed' => $request->quantity_changed,
+                    'new_total_quantity' => $new_total,
+                    'remarks' => $request->remarks,
+                    'borrower_name' => $request->borrower_name ?? null,
+                    'source_warehouse' => $request->source_warehouse ?? null,
+                    'expected_return_date' => $request->expected_return_date ?? null,
+                    'defect_reason' => $request->defect_reason ?? null,
+                ],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
             ]);
             
             // If movement type is borrowed, create a borrowed item record

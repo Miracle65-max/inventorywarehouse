@@ -8,6 +8,7 @@ use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\AuditTrail;
 
 class SalesOrderController extends Controller
 {
@@ -129,6 +130,28 @@ class SalesOrderController extends Controller
                 $item->save();
                 $order->orderItems()->create($orderItem);
             }
+
+            // Audit trail log
+            AuditTrail::create([
+                'user_id' => Auth::id(),
+                'module' => 'Sales Orders',
+                'action' => 'Created sales order: ' . $order->order_number,
+                'details' => [
+                    'order_id' => $order->order_id,
+                    'order_number' => $order->order_number,
+                    'customer_name' => $order->customer_name,
+                    'total_amount' => $order->total_amount,
+                    'status' => $order->status,
+                    'items' => array_map(function($oi) { return [
+                        'item_id' => $oi['item_id'],
+                        'quantity' => $oi['quantity'],
+                        'unit_price' => $oi['unit_price'],
+                        'total_price' => $oi['total_price'],
+                    ]; }, $orderItems),
+                ],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
 
             DB::commit();
             return redirect()->route('sales-orders.index')->with('success', 'Order created successfully!');

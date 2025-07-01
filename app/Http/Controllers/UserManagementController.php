@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Models\AuditTrail;
+use Illuminate\Support\Facades\Auth;
 
 class UserManagementController extends Controller
 {
@@ -47,13 +49,23 @@ class UserManagementController extends Controller
             'role.required' => 'Role is required.',
         ]);
 
-        User::create([
+        $user = User::create([
             'full_name' => $validated['full_name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
             'status' => 'active',
+        ]);
+
+        // Audit trail log
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'module' => 'User Management',
+            'action' => 'Created user: ' . $user->full_name,
+            'details' => ['created_user_id' => $user->id],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return redirect()->route('user-management.index')->with('success', 'User created successfully!');
@@ -124,6 +136,16 @@ class UserManagementController extends Controller
 
         $user->update($data);
 
+        // Audit trail log
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'module' => 'User Management',
+            'action' => 'Updated user: ' . $user->full_name,
+            'details' => ['updated_user_id' => $user->id],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return redirect()->route('user-management.index')->with('success', 'User updated successfully!');
     }
 
@@ -186,6 +208,17 @@ class UserManagementController extends Controller
         $this->authorize('delete', $user);
         
         $user->delete();
+
+        // Audit trail log
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'module' => 'User Management',
+            'action' => 'Deleted user: ' . $user->full_name,
+            'details' => ['deleted_user_id' => $user->id],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
         return redirect()->route('user-management.index')->with('success', 'User deleted successfully!');
     }
 }

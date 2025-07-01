@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use App\Models\AuditTrail;
 
 class ItemController extends Controller
 {
@@ -73,7 +74,18 @@ class ItemController extends Controller
             'date_received.before_or_equal' => 'Date received cannot be in the future.',
         ]);
 
-        Item::create($validated);
+        $item = Item::create($validated);
+
+        // Audit trail log
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'module' => 'Items',
+            'action' => 'Created item: ' . $item->item_name,
+            'details' => ['item_id' => $item->item_id ?? $item->id],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return redirect()->route('items.index')->with('success', 'Item added successfully.');
     }
 
@@ -121,12 +133,36 @@ class ItemController extends Controller
         ]);
 
         $item->update($validated);
+
+        // Audit trail log
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'module' => 'Items',
+            'action' => 'Updated item: ' . $item->item_name,
+            'details' => ['item_id' => $item->item_id ?? $item->id],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return redirect()->route('items.index')->with('success', 'Item updated successfully.');
     }
 
     public function destroy(Item $item)
     {
+        $itemName = $item->item_name;
+        $itemId = $item->item_id ?? $item->id;
         $item->delete();
+
+        // Audit trail log
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'module' => 'Items',
+            'action' => 'Deleted item: ' . $itemName,
+            'details' => ['item_id' => $itemId],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
         return redirect()->route('items.index')->with('success', 'Item deleted successfully.');
     }
 

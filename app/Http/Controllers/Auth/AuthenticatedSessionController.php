@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\AuditTrail;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -28,6 +29,18 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Audit trail log for login
+        if (auth()->check()) {
+            AuditTrail::create([
+                'user_id' => auth()->id(),
+                'module' => 'Authentication',
+                'action' => 'Logged in',
+                'details' => ['full_name' => auth()->user()->full_name],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -36,6 +49,18 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Audit trail log for logout
+        if (auth()->check()) {
+            AuditTrail::create([
+                'user_id' => auth()->id(),
+                'module' => 'Authentication',
+                'action' => 'Logged out',
+                'details' => ['full_name' => auth()->user()->full_name],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
