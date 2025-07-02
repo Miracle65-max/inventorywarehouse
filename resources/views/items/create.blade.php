@@ -46,21 +46,6 @@
                         </div>
 
                         <div class="mb-3" style="margin-bottom: 20px;">
-                            <label for="item_code" style="display: block; margin-bottom: 8px; font-weight: 600; color: #1d2327; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Item Code *</label>
-                            <input type="text" 
-                                   class="form-control @error('item_code') is-invalid @enderror" 
-                                   id="item_code" 
-                                   name="item_code" 
-                                   value="{{ old('item_code') }}" 
-                                   required 
-                                   maxlength="100"
-                                   style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 3px; font-size: 14px; transition: border-color 0.2s ease; box-sizing: border-box; background: white;">
-                            @error('item_code')
-                                <div class="invalid-feedback" style="color: #dc3545; font-size: 12px; margin-top: 4px;">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3" style="margin-bottom: 20px;">
                             <label for="category" style="display: block; margin-bottom: 8px; font-weight: 600; color: #1d2327; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Category *</label>
                             <select class="form-control @error('category') is-invalid @enderror" 
                                     id="category" 
@@ -229,4 +214,37 @@
     .form-actions .d-flex { flex-direction: column; gap: 16px; align-items: stretch; }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('category');
+    const itemCodeInput = document.getElementById('item_code');
+    const codePreview = document.getElementById('code-preview');
+    const previewCode = document.getElementById('preview-code');
+    
+    function updateCodePreview() {
+        const category = categorySelect.value;
+        const currentCode = itemCodeInput.value.trim();
+        
+        if (!currentCode && category) {
+            // Generate preview code
+            const prefix = category.substring(0, 3).toUpperCase();
+            const year = new Date().getFullYear();
+            const month = String(new Date().getMonth() + 1).padStart(2, '0');
+            const preview = prefix + '-' + year + month + '-0001';
+            
+            previewCode.textContent = preview;
+            codePreview.style.display = 'block';
+        } else {
+            codePreview.style.display = 'none';
+        }
+    }
+    
+    categorySelect.addEventListener('change', updateCodePreview);
+    itemCodeInput.addEventListener('input', updateCodePreview);
+    
+    // Initial preview
+    updateCodePreview();
+});
+</script>
 @endsection

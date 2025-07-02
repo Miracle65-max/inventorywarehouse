@@ -6,6 +6,7 @@
         <h1 class="mb-0" style="font-size: 2rem; letter-spacing: 0.5px; color: #1d2327;">Item Details</h1>
         <div>
             <a href="{{ route('items.index') }}" class="btn btn-secondary" style="background-color: #3c343c; color: white; padding: 8px 16px; border-radius: 3px; text-decoration: none; font-size: 13px; font-weight: 500; margin-right: 8px; border: 1px solid #3c343c; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(60,52,60,0.2);">← Back to Items</a>
+            <a href="{{ route('barcode.show', $item->item_code) }}" class="btn btn-success" style="background-color: #28a745; color: white; padding: 8px 16px; border-radius: 3px; text-decoration: none; font-size: 13px; font-weight: 500; margin-right: 8px; border: 1px solid #28a745; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(40,167,69,0.2);">View Barcode</a>
             @auth
                 @php $user = auth()->user(); @endphp
                 @if($user && ($user->role === 'super_admin' || $user->role === 'admin'))
@@ -134,6 +135,27 @@
             </div>
         </div>
     </div>
+
+    <!-- Barcode Section -->
+    <div class="card" style="box-shadow: 0 4px 16px rgba(44,62,80,0.07); border-radius: 3px; border: 1px solid #e1e5e9; background: white; margin-top: 20px;">
+        <div class="card-header" style="background: #f8fafc; border-radius: 3px 3px 0 0; border-bottom: 1px solid #e1e5e9; padding: 16px 20px;">
+            <h3 class="card-title" style="font-size: 1.2rem; letter-spacing: 0.2px; margin: 0; color: #1d2327; font-weight: 600;">Item Barcode</h3>
+        </div>
+        <div class="card-body" style="padding: 30px; text-align: center;">
+            <div class="barcode-container" style="margin: 20px 0; padding: 20px; border: 2px solid #e1e5e9; border-radius: 8px; background: white; display: inline-block;">
+                <img src="{{ route('barcode.generate', $item->item_code) }}" 
+                     alt="Barcode for {{ $item->item_code }}" 
+                     style="max-width: 300px; height: auto; display: block; margin: 0 auto;">
+                <div style="margin-top: 15px; font-family: monospace; font-size: 18px; font-weight: 600; color: #1d2327;">
+                    {{ $item->item_code }}
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <button onclick="window.print()" class="btn btn-primary" style="background-color: #136735; color: white; padding: 10px 20px; border-radius: 3px; text-decoration: none; font-size: 14px; font-weight: 500; border: 1px solid #136735; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(19,103,53,0.2); cursor: pointer; margin-right: 10px;">Print Barcode</button>
+                <a href="{{ route('barcode.show', $item->item_code) }}" class="btn btn-info" style="background-color: #17a2b8; color: white; padding: 10px 20px; border-radius: 3px; text-decoration: none; font-size: 14px; font-weight: 500; border: 1px solid #17a2b8; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(23,162,184,0.2);">Full Barcode View</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -148,6 +170,14 @@
     .col-md-6 { flex: none; }
     .gap-1 { gap: 8px !important; }
     .btn { min-width: auto !important; }
+}
+
+@media print {
+    .main-content { background: white !important; }
+    .card { box-shadow: none !important; border: 1px solid #000 !important; }
+    .btn { display: none !important; }
+    .justify-between { display: none !important; }
+    .barcode-container { border: 1px solid #000 !important; }
 }
 </style>
 @endsection 

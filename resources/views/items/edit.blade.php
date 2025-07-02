@@ -28,14 +28,20 @@
                     @method('PUT')
                     <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">
                         <div style="flex: 1;">
-                            <label for="item_name" style="font-weight: 600; color: #1d2327; font-size: 13px;">Item Name *</label>
-                            <input type="text" name="item_name" id="item_name" value="{{ old('item_name', $item->item_name) }}" required style="width: 100%; margin-top: 4px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; background: #f9f9f9;">
-                            @error('item_name')<div style="color: #dc3545; font-size: 13px; margin-top: 2px;">{{ $message }}</div>@enderror
-                        </div>
-                        <div style="flex: 1;">
-                            <label for="item_code" style="font-weight: 600; color: #1d2327; font-size: 13px;">Item Code *</label>
-                            <input type="text" name="item_code" id="item_code" value="{{ old('item_code', $item->item_code) }}" required style="width: 100%; margin-top: 4px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; background: #f9f9f9;">
-                            @error('item_code')<div style="color: #dc3545; font-size: 13px; margin-top: 2px;">{{ $message }}</div>@enderror
+                            <div class="mb-3" style="margin-bottom: 20px;">
+                                <label for="item_name" style="display: block; margin-bottom: 8px; font-weight: 600; color: #1d2327; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Item Name *</label>
+                                <input type="text" 
+                                       class="form-control @error('item_name') is-invalid @enderror" 
+                                       id="item_name" 
+                                       name="item_name" 
+                                       value="{{ old('item_name', $item->item_name) }}" 
+                                       required 
+                                       maxlength="255"
+                                       style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 3px; font-size: 14px; transition: border-color 0.2s ease; box-sizing: border-box; background: white;">
+                                @error('item_name')
+                                    <div class="invalid-feedback" style="color: #dc3545; font-size: 12px; margin-top: 4px;">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                     <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">

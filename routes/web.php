@@ -11,9 +11,13 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ProfileManagementController;
 use App\Http\Controllers\RecentlyDeletedController;
+use App\Http\Controllers\BarcodeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Notification;
+
+// Barcode image route should be public
+Route::get('/barcode/{itemCode}/generate', [App\Http\Controllers\BarcodeController::class, 'generateBarcode'])->name('barcode.generate');
 
 // Protect all sensitive routes with auth middleware
 Route::middleware('auth')->group(function () {
@@ -90,6 +94,10 @@ Route::middleware('auth')->group(function () {
     Route::post('sales-orders/{sales_order}/status', [App\Http\Controllers\SalesOrderController::class, 'updateStatus'])->name('sales-orders.updateStatus');
     Route::get('/inventory-status/ajax-search', [App\Http\Controllers\InventoryStatusController::class, 'ajaxSearch'])->name('inventory-status.ajax-search');
     Route::get('/items/{id}/current-stock', [App\Http\Controllers\ItemController::class, 'currentStock']);
+    
+    // Barcode routes
+    Route::get('/barcode/{itemCode}', [BarcodeController::class, 'showBarcode'])->name('barcode.show');
+
     Route::get('/test-layout', function() {
         return view('profile.test_layout', ['user' => Auth::user()]);
     });

@@ -47,7 +47,7 @@ class ItemController extends Controller
     {
         $validated = $request->validate([
             'item_name' => 'required|string|min:3|max:255',
-            'item_code' => 'required|string|min:2|max:100|unique:items,item_code|regex:/^[A-Za-z0-9-_]+$/',
+            'item_code' => 'nullable|string|min:2|max:100|unique:items,item_code|regex:/^[A-Za-z0-9-_]+$/',
             'category' => 'required|string|max:100|in:electrical,plumbing,hardware,tools,materials,other',
             'description' => 'nullable|string|max:500',
             'quantity' => 'required|integer|min:0',

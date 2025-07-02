@@ -18,12 +18,45 @@ class Item extends Model
 
     protected static function booted()
     {
+        static::creating(function ($item) {
+            // Auto-generate item code if not provided
+            if (empty($item->item_code)) {
+                $item->item_code = self::generateUniqueItemCode($item->category);
+            }
+        });
+
         static::deleting(function ($item) {
             if (auth()->check()) {
                 $item->deleted_by = auth()->id();
                 $item->save();
             }
         });
+    }
+
+    /**
+     * Generate a unique item code based on category
+     */
+    public static function generateUniqueItemCode($category = 'other')
+    {
+        $prefix = strtoupper(substr($category, 0, 3));
+        $year = date('Y');
+        $month = date('m');
+        
+        // Get the last item code for this category and month
+        $lastItem = self::where('item_code', 'like', $prefix . $year . $month . '%')
+            ->orderBy('item_code', 'desc')
+            ->first();
+        
+        if ($lastItem) {
+            // Extract the sequence number and increment
+            $lastSequence = (int) substr($lastItem->item_code, -4);
+            $newSequence = $lastSequence + 1;
+        } else {
+            $newSequence = 1;
+        }
+        
+        // Format: CAT-YYYYMM-0001 (e.g., ELE-202412-0001)
+        return $prefix . '-' . $year . $month . '-' . str_pad($newSequence, 4, '0', STR_PAD_LEFT);
     }
 
     public function supplier()

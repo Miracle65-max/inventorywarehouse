@@ -85,7 +85,7 @@
                         <thead style="position: sticky; top: 0; background: #f1f1f1; z-index: 1;">
                             <tr>
                                 <th style="background: #f1f1f1; padding: 12px 16px; text-align: left; font-weight: 600; color: #1d2327; border-bottom: 2px solid #e1e5e9; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; width: 20%;">Item Name</th>
-                                <th style="background: #f1f1f1; padding: 12px 16px; text-align: left; font-weight: 600; color: #1d2327; border-bottom: 2px solid #e1e5e9; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; width: 12%;">Code</th>
+                                <th style="background: #f1f1f1; padding: 12px 16px; text-align: left; font-weight: 600; color: #1d2327; border-bottom: 2px solid #e1e5e9; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; width: 15%;">Code & Barcode</th>
                                 <th style="background: #f1f1f1; padding: 12px 16px; text-align: left; font-weight: 600; color: #1d2327; border-bottom: 2px solid #e1e5e9; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; width: 10%;">Category</th>
                                 <th style="background: #f1f1f1; padding: 12px 16px; text-align: left; font-weight: 600; color: #1d2327; border-bottom: 2px solid #e1e5e9; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; width: 10%;">Qty</th>
                                 <th style="background: #f1f1f1; padding: 12px 16px; text-align: left; font-weight: 600; color: #1d2327; border-bottom: 2px solid #e1e5e9; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; width: 12%;">Price</th>
@@ -107,7 +107,19 @@
                                     @endif
                                 </div>
                             </td>
-                                    <td style="padding: 12px 16px; color: #646970; font-size: 13px; font-family: monospace; vertical-align: middle;">{{ $item->item_code }}</td>
+                                    <td style="padding: 12px 16px; vertical-align: middle;">
+                                        <div style="margin-bottom: 5px;">
+                                            <span style="color: #646970; font-size: 13px; font-family: monospace; font-weight: 600;">{{ $item->item_code }}</span>
+                                        </div>
+                                        <div class="barcode-container" style="position: relative; display: inline-block;">
+                                            <img src="{{ route('barcode.generate', $item->item_code) }}" 
+                                                 alt="Barcode for {{ $item->item_code }}" 
+                                                 class="barcode-image"
+                                                 style="max-width: 120px; height: 30px; cursor: pointer; transition: transform 0.2s ease;"
+                                                 title="Click to enlarge barcode"
+                                                 onclick="showBarcodeModal('{{ $item->item_code }}', '{{ $item->item_name }}')">
+                                        </div>
+                                    </td>
                                     <td style="padding: 12px 16px; vertical-align: middle;">
                                         <span class="badge badge-secondary" style="font-weight:600;text-transform:uppercase;letter-spacing:0.5px;box-shadow:0 1px 3px #e2e3e5; background-color: #6c757d; color: white; padding: 3px 6px; border-radius: 3px; font-size: 9px;">{{ ucfirst($item->category) }}</span>
                             </td>
@@ -120,6 +132,7 @@
                                     <td style="padding: 12px 16px; vertical-align: middle;">
                                         <div class="action-buttons" style="display: flex; gap: 2px; flex-wrap: wrap; max-width: 100%;">
                                             <a href="{{ route('items.show', $item) }}" class="btn btn-sm btn-info" style="background-color: #17a2b8; color: white; padding: 3px 6px; border-radius: 3px; text-decoration: none; font-size: 10px; font-weight: 500; border: 1px solid #17a2b8; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(23,162,184,0.2); white-space: nowrap; min-width: 40px; text-align: center;">View</a>
+                                            <button onclick="showBarcodeModal('{{ $item->item_code }}', '{{ $item->item_name }}')" class="btn btn-sm btn-success" style="background-color: #28a745; color: white; padding: 3px 6px; border-radius: 3px; text-decoration: none; font-size: 10px; font-weight: 500; border: 1px solid #28a745; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(40,167,69,0.2); white-space: nowrap; min-width: 40px; text-align: center; cursor: pointer;">Barcode</button>
                                             @auth
                                                 @php $user = auth()->user(); @endphp
                                                 @if($user && ($user->role === 'super_admin' || $user->role === 'admin'))
@@ -158,6 +171,26 @@
                         @endif
                     </div>
                 @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Barcode Modal -->
+<div id="barcodeModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 id="modalTitle" style="margin: 0; color: #1d2327; font-size: 18px; font-weight: 600;">Item Barcode</h3>
+            <span class="close" onclick="closeBarcodeModal()" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;">&times;</span>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <div id="modalBarcodeContainer" style="margin: 20px 0; padding: 20px; border: 2px solid #e1e5e9; border-radius: 8px; background: white;">
+                <img id="modalBarcodeImage" src="" alt="Barcode" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+                <div id="modalBarcodeText" style="margin-top: 10px; font-family: monospace; font-size: 18px; font-weight: 600; color: #1d2327;"></div>
+            </div>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button onclick="printBarcode()" class="btn btn-primary" style="background-color: #136735; color: white; padding: 10px 20px; border-radius: 3px; text-decoration: none; font-size: 14px; font-weight: 500; border: 1px solid #136735; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(19,103,53,0.2); cursor: pointer; margin-right: 10px;">Print Barcode</button>
+                <button onclick="closeBarcodeModal()" class="btn btn-secondary" style="background-color: #6c757d; color: white; padding: 10px 20px; border-radius: 3px; text-decoration: none; font-size: 14px; font-weight: 500; border: 1px solid #6c757d; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(108,117,125,0.2); cursor: pointer;">Close</button>
             </div>
         </div>
     </div>
@@ -251,5 +284,107 @@
         table-layout: auto;
     }
 }
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Barcode hover effect */
+.barcode-image:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
 </style>
+
+<script>
+function showBarcodeModal(itemCode, itemName) {
+    const modal = document.getElementById('barcodeModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBarcodeImage = document.getElementById('modalBarcodeImage');
+    const modalBarcodeText = document.getElementById('modalBarcodeText');
+    
+    modalTitle.textContent = 'Barcode for ' + itemName;
+    modalBarcodeImage.src = '{{ route("barcode.generate", ":itemCode") }}'.replace(':itemCode', itemCode);
+    modalBarcodeText.textContent = itemCode;
+    
+    modal.style.display = 'block';
+}
+
+function closeBarcodeModal() {
+    const modal = document.getElementById('barcodeModal');
+    modal.style.display = 'none';
+}
+
+function printBarcode() {
+    const modalBarcodeContainer = document.getElementById('modalBarcodeContainer');
+    const printWindow = window.open('', '_blank');
+    
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Print Barcode</title>
+                <style>
+                    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                    .barcode-container { text-align: center; padding: 20px; border: 1px solid #000; }
+                    .barcode-image { max-width: 100%; height: auto; }
+                    .barcode-text { margin-top: 10px; font-family: monospace; font-size: 18px; font-weight: 600; }
+                </style>
+            </head>
+            <body>
+                <div class="barcode-container">
+                    <img src="${document.getElementById('modalBarcodeImage').src}" alt="Barcode" class="barcode-image">
+                    <div class="barcode-text">${document.getElementById('modalBarcodeText').textContent}</div>
+                </div>
+            </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('barcodeModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeBarcodeModal();
+    }
+});
+</script>
 @endsection

@@ -9,6 +9,7 @@
         "php": "^8.2",
         "laravel/framework": "*",
         "laravel/tinker": "^2.10.1",
+        "picqer/php-barcode-generator": "^3.2",
         "spatie/laravel-permission": "^6.20"
     },
     "require-dev": {
