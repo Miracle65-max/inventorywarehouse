@@ -45,48 +45,69 @@ class ItemController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'item_name' => 'required|string|min:3|max:255',
-            'item_code' => 'nullable|string|min:2|max:100|unique:items,item_code|regex:/^[A-Za-z0-9-_]+$/',
-            'category' => 'required|string|max:100|in:electrical,plumbing,hardware,tools,materials,other',
-            'description' => 'nullable|string|max:500',
-            'quantity' => 'required|integer|min:0',
-            'unit' => 'required|string|min:1|max:50',
-            'cost_price' => 'required|numeric|min:0|max:999999999.99',
-            'location' => 'nullable|string|max:255',
-            'supplier_id' => 'nullable|exists:suppliers,supplier_id',
-            'date_received' => 'required|date|before_or_equal:today',
-        ], [
-            'item_name.min' => 'Item name must be at least 3 characters long.',
-            'item_name.max' => 'Item name must not exceed 255 characters.',
-            'item_code.min' => 'Item code must be at least 2 characters long.',
-            'item_code.max' => 'Item code must not exceed 100 characters.',
-            'item_code.regex' => 'Item code can only contain letters, numbers, hyphens, and underscores.',
-            'item_code.unique' => 'Item code already exists!',
-            'category.in' => 'Please select a valid category.',
-            'quantity.min' => 'Quantity cannot be negative.',
-            'quantity.integer' => 'Quantity must be a whole number.',
-            'unit.min' => 'Unit is required.',
-            'unit.max' => 'Unit must not exceed 50 characters.',
-            'cost_price.min' => 'Cost price cannot be negative.',
-            'cost_price.max' => 'Cost price is too large.',
-            'location.max' => 'Location must not exceed 255 characters.',
-            'date_received.before_or_equal' => 'Date received cannot be in the future.',
-        ]);
+        try {
+            $validated = $request->validate([
+                'item_name' => 'required|string|min:3|max:255',
+                'category' => 'required|string|max:100|in:electrical,plumbing,hardware,tools,materials,other',
+                'description' => 'nullable|string|max:500',
+                'quantity' => 'required|integer|min:0',
+                'unit' => 'required|string|min:1|max:50',
+                'cost_price' => 'required|numeric|min:0|max:999999999.99',
+                'location' => 'nullable|string|max:255',
+                'supplier_id' => 'nullable|exists:suppliers,supplier_id',
+                'date_received' => 'required|date|before_or_equal:today',
+            ], [
+                'item_name.min' => 'Item name must be at least 3 characters long.',
+                'item_name.max' => 'Item name must not exceed 255 characters.',
+                'category.in' => 'Please select a valid category.',
+                'quantity.min' => 'Quantity cannot be negative.',
+                'quantity.integer' => 'Quantity must be a whole number.',
+                'unit.min' => 'Unit is required.',
+                'unit.max' => 'Unit must not exceed 50 characters.',
+                'cost_price.min' => 'Cost price cannot be negative.',
+                'cost_price.max' => 'Cost price is too large.',
+                'location.max' => 'Location must not exceed 255 characters.',
+                'date_received.before_or_equal' => 'Date received cannot be in the future.',
+            ]);
 
-        $item = Item::create($validated);
+            // Generate a unique item_code
+            $category = $request->input('category');
+            $prefix = strtoupper(substr($category, 0, 3));
+            $yearMonth = Carbon::now()->format('Ym'); // e.g., 202507
+            $latestItem = Item::where('item_code', 'like', "$prefix-$yearMonth%")
+                ->orderBy('item_code', 'desc')
+                ->first();
 
-        // Audit trail log
-        AuditTrail::create([
-            'user_id' => Auth::id(),
-            'module' => 'Items',
-            'action' => 'Created item: ' . $item->item_name,
-            'details' => ['item_id' => $item->item_id ?? $item->id],
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+            $sequence = 1;
+            if ($latestItem) {
+                $parts = explode('-', $latestItem->item_code);
+                $sequence = (int) $parts[2] + 1;
+            }
+            $itemCode = sprintf("%s-%s-%04d", $prefix, $yearMonth, $sequence);
 
-        return redirect()->route('items.index')->with('success', 'Item added successfully.');
+            // Add item_code to validated data
+            $validated['item_code'] = $itemCode;
+
+            // Create the item
+            $item = Item::create($validated);
+
+            // Audit trail log
+            AuditTrail::create([
+                'user_id' => Auth::id(),
+                'module' => 'Items',
+                'action' => 'Created item: ' . $item->item_name,
+                'details' => ['item_id' => $item->item_id ?? $item->id],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return redirect()->route('items.index')->with('success', 'Item added successfully.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) { // Integrity constraint violation
+                return back()->withErrors(['item_code' => 'The generated item code is already in use. Please try again.'])->withInput();
+            }
+            throw $e;
+        }
     }
 
     public function show(Item $item)
@@ -177,6 +198,25 @@ class ItemController extends Controller
             'quantity' => $item->quantity,
             'unit' => $item->unit,
         ]);
+    }
+
+    // Generate unique item_code for AJAX preview
+    public function generateItemCode($category)
+    {
+        $prefix = strtoupper(substr($category, 0, 3));
+        $yearMonth = Carbon::now()->format('Ym');
+        $latestItem = Item::where('item_code', 'like', "$prefix-$yearMonth%")
+            ->orderBy('item_code', 'desc')
+            ->first();
+
+        $sequence = 1;
+        if ($latestItem) {
+            $parts = explode('-', $latestItem->item_code);
+            $sequence = (int) $parts[2] + 1;
+        }
+        $itemCode = sprintf("%s-%s-%04d", $prefix, $yearMonth, $sequence);
+
+        return response()->json(['item_code' => $itemCode]);
     }
 
     public function listNotifications(Request $request)

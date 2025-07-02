@@ -27,7 +27,7 @@
             $item->status === 'pending' ? 'warning' : 
             ($item->status === 'repaired' ? 'success' : 'danger') 
         }}">
-            {{ ucfirst($item->status) }}
+            {{ strtoupper($item->status) }}
         </span>
     </td>
     <td>
@@ -41,20 +41,24 @@
     <td class="action-buttons">
         @if($item->status === 'pending')
             <div style="display:flex;gap:8px;">
-                <form method="POST" action="{{ route('inventory-status.repair-item') }}">
+                @can('repair', $item)
+                <form method="POST" action="{{ route('inventory-status.repair-item') }}" class="repair-form">
                     @csrf
                     <input type="hidden" name="defect_id" value="{{ $item->defect_id }}">
                     <input type="hidden" name="item_id" value="{{ $item->item_id }}">
                     <input type="hidden" name="quantity" value="{{ $item->quantity_defective }}">
                     <button type="submit" class="wp-btn wp-btn-primary wp-btn-sm" style="padding:6px 14px;font-size:13px;" onclick="return confirm('Are you sure you want to mark this item as repaired?')">Mark as Repaired</button>
                 </form>
-                <form method="POST" action="{{ route('inventory-status.dispose-item') }}">
+                @endcan
+                @can('dispose', $item)
+                <form method="POST" action="{{ route('inventory-status.dispose-item') }}" class="dispose-form">
                     @csrf
                     <input type="hidden" name="defect_id" value="{{ $item->defect_id }}">
                     <input type="hidden" name="item_id" value="{{ $item->item_id }}">
                     <input type="hidden" name="quantity" value="{{ $item->quantity_defective }}">
                     <button type="submit" class="wp-btn wp-btn-danger wp-btn-sm" style="background:#dc3232;border-color:#dc3232;color:#fff;padding:6px 14px;font-size:13px;" onclick="return confirm('Are you sure you want to dispose of this item? This action cannot be undone.')">Dispose</button>
                 </form>
+                @endcan
             </div>
         @else
             <span class="wp-badge wp-badge-secondary">
@@ -68,4 +72,4 @@
 <tr>
     <td colspan="8" class="text-center">No defective items found</td>
 </tr>
-@endif 
+@endif

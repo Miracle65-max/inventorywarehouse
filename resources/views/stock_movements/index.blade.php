@@ -115,7 +115,7 @@
         border-color: #136735; 
         color: white; 
     }
-    .pagination .page-item.active .page-link { 
+    .pagination .page-item.active .budgets .page-link { 
         background-color: #136735; 
         border-color: #136735; 
         color: white; 
@@ -143,6 +143,20 @@
         .action-buttons { flex-direction: column; gap: 2px; }
         .action-buttons .wp-btn { width: 100%; min-width: auto; }
         .wp-table { font-size: 12px; }
+    }
+    .success-message {
+        position: relative;
+        padding: 12px 15px;
+        margin-bottom: 24px;
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        border-radius: 0;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+    .success-message.fade {
+        opacity: 0;
     }
 </style>
 <div class="main-content">
@@ -226,7 +240,19 @@
         <input type="text" id="movementSearchInput" placeholder="Search movements..." class="form-control" style="width:250px;padding:8px 12px;border:1px solid #ddd;border-radius:0;font-size:14px;">
     </div>
     @if(session('success'))
-        <div class="px-4 py-3 mb-4 text-green-700 bg-green-100 border border-green-400" style="border-radius:0;">{{ session('success') }}</div>
+        <div id="success-message" class="success-message">
+            {{ session('success') }}
+        </div>
+        <script>
+            // Auto-dismiss the success message after 3 seconds
+            setTimeout(function() {
+                let alert = document.getElementById('success-message');
+                if (alert) {
+                    alert.classList.add('fade');
+                    setTimeout(() => alert.remove(), 300);
+                }
+            }, 3000);
+        </script>
     @endif
     <div class="wp-card" style="overflow-x:auto;max-height:600px;overflow-y:auto;">
         <table class="wp-table" id="movementsTable">

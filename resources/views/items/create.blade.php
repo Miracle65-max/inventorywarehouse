@@ -63,6 +63,9 @@
                             @error('category')
                                 <div class="invalid-feedback" style="color: #dc3545; font-size: 12px; margin-top: 4px;">{{ $message }}</div>
                             @enderror
+                            <div id="code-preview" style="display: none; margin-top: 8px; font-size: 14px; color: #1d2327;">
+                                <strong>Generated Item Code: </strong><span id="preview-code"></span>
+                            </div>
                         </div>
 
                         <div class="mb-3" style="margin-bottom: 20px;">
@@ -218,30 +221,29 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const categorySelect = document.getElementById('category');
-    const itemCodeInput = document.getElementById('item_code');
     const codePreview = document.getElementById('code-preview');
     const previewCode = document.getElementById('preview-code');
     
     function updateCodePreview() {
         const category = categorySelect.value;
-        const currentCode = itemCodeInput.value.trim();
         
-        if (!currentCode && category) {
-            // Generate preview code
-            const prefix = category.substring(0, 3).toUpperCase();
-            const year = new Date().getFullYear();
-            const month = String(new Date().getMonth() + 1).padStart(2, '0');
-            const preview = prefix + '-' + year + month + '-0001';
-            
-            previewCode.textContent = preview;
-            codePreview.style.display = 'block';
+        if (category) {
+            fetch(`/items/generate-item-code/${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    previewCode.textContent = data.item_code;
+                    codePreview.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching item code:', error);
+                    codePreview.style.display = 'none';
+                });
         } else {
             codePreview.style.display = 'none';
         }
     }
     
     categorySelect.addEventListener('change', updateCodePreview);
-    itemCodeInput.addEventListener('input', updateCodePreview);
     
     // Initial preview
     updateCodePreview();

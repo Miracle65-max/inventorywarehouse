@@ -38,7 +38,7 @@ class ReportController extends Controller
             case 'stock_movements':
                 $report_title = 'Stock Movements Report';
                 $report_data = DB::table('stock_movements as sm')
-                    ->join('items as i', 'sm.item_id', '=', 'i.id')
+                    ->join('items as i', 'sm.item_id', '=', 'i.item_id') // Changed i.id to i.item_id
                     ->join('users as u', 'sm.user_id', '=', 'u.id')
                     ->select('sm.*', 'i.item_name', 'i.item_code', 'u.full_name as full_name')
                     ->whereBetween(DB::raw('DATE(sm.timestamp)'), [$date_from, $date_to])
@@ -58,7 +58,20 @@ class ReportController extends Controller
                 $report_title = 'Suppliers Report';
                 $report_data = DB::table('suppliers as s')
                     ->leftJoin('items as i', 's.supplier_id', '=', 'i.supplier_id')
-                    ->select('s.*', DB::raw('COUNT(i.item_id) as item_count'), DB::raw('SUM(i.quantity * i.cost_price) as total_value'))
+                    ->select(
+                        's.supplier_id',
+                        's.supplier_name',
+                        's.contact_person',
+                        's.contact_number',
+                        's.email',
+                        's.address',
+                        's.status',
+                        's.created_at',
+                        's.updated_at',
+                        's.deleted_at',
+                        DB::raw('COUNT(i.item_id) as item_count'),
+                        DB::raw('SUM(i.quantity * i.cost_price) as total_value')
+                    )
                     ->groupBy(
                         's.supplier_id',
                         's.supplier_name',

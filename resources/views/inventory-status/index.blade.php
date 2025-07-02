@@ -110,21 +110,36 @@
     color: #136735;
     border-bottom: 2px solid #136735;
 }
+.alert {
+    padding: 12px 18px;
+    margin-bottom: 18px;
+    border: 1px solid transparent;
+}
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
 </style>
 <div class="main-content">
     {{-- Show error and success messages --}}
     @if(session('success'))
-        <div style="background:#d4edda;color:#155724;padding:12px 18px;margin-bottom:18px;border:1px solid #c3e6cb;">
+        <div class="alert alert-success">
             {{ session('success') }}
         </div>
     @endif
     @if(session('error'))
-        <div style="background:#f8d7da;color:#721c24;padding:12px 18px;margin-bottom:18px;border:1px solid #f5c6cb;">
+        <div class="alert alert-danger">
             {{ session('error') }}
         </div>
     @endif
     @if($errors->any())
-        <div style="background:#f8d7da;color:#721c24;padding:12px 18px;margin-bottom:18px;border:1px solid #f5c6cb;">
+        <div class="alert alert-danger">
             <ul style="margin:0;padding-left:18px;">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -158,37 +173,8 @@
                                 @endcan
                             </tr>
                         </thead>
-                        <tbody>
-                            @forelse($borrowedItems as $item)
-                            <tr>
-                                <td>{{ $item->item ? $item->item->item_name : 'Unknown Item' }}</td>
-                                <td>{{ $item->quantity }}</td>
-                                <td>{{ $item->borrowed_date->format('M j, Y') }}</td>
-                                <td>{{ $item->expected_return_date->format('M j, Y') }}</td>
-                                <td>
-                                    <span class="wp-badge wp-badge-{{ $item->status === 'borrowed' ? 'warning' : 'success' }}">
-                                        {{ ucfirst($item->status) }}
-                                    </span>
-                                </td>
-                                @can('return', $item)
-                                @if($item->status === 'borrowed')
-                                <td>
-                                    <form method="POST" action="{{ route('inventory-status.return-item') }}" style="display: inline;">
-                                        @csrf
-                                        <input type="hidden" name="borrowed_id" value="{{ $item->borrowed_id }}">
-                                        <input type="hidden" name="item_id" value="{{ $item->item_id }}">
-                                        <input type="hidden" name="quantity" value="{{ $item->quantity }}">
-                                        <button type="submit" class="wp-btn wp-btn-primary wp-btn-sm" style="padding:6px 14px;font-size:13px;" onclick="return confirm('Are you sure you want to return this item?')">Return Item</button>
-                                    </form>
-                                </td>
-                                @endif
-                                @endcan
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center">No borrowed items found</td>
-                            </tr>
-                            @endforelse
+                        <tbody id="borrowed-tbody">
+                            @include('inventory-status.partials.borrowed_table_body', ['borrowedItems' => $borrowedItems])
                         </tbody>
                     </table>
                 </div>
@@ -206,7 +192,7 @@
             </div>
             <div style="padding: 20px;">
                 <div style="overflow-x:auto;">
-                    <table class="wp-table">
+                    <table class="wp-table" id="defective-table">
                         <thead>
                             <tr>
                                 <th>Item</th>
@@ -233,6 +219,7 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // AJAX for search
     const searchInput = document.querySelector('input[name="search"]');
     const tbody = document.getElementById('defective-tbody');
     let timer = null;
@@ -244,10 +231,119 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(res => res.json())
                     .then(data => {
                         tbody.innerHTML = data.html;
-                    });
+                    })
+                    .catch(error => console.error('Search error:', error));
             }, 300);
         });
     }
+
+    // AJAX for repair and dispose forms
+    document.querySelectorAll('.repair-form, .dispose-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const action = this.action;
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Processing...';
+
+            fetch(action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                button.disabled = false;
+                button.textContent = originalText;
+                if (data.success) {
+                    // Update table body
+                    document.getElementById('defective-tbody').innerHTML = data.html;
+                    // Show success message
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success';
+                    alert.textContent = data.success;
+                    document.querySelector('.main-content').insertBefore(alert, document.querySelector('.wp-card'));
+                    setTimeout(() => alert.remove(), 3000);
+                } else {
+                    // Show error message
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-danger';
+                    alert.textContent = data.error || 'An error occurred.';
+                    document.querySelector('.main-content').insertBefore(alert, document.querySelector('.wp-card'));
+                    setTimeout(() => alert.remove(), 3000);
+                }
+            })
+            .catch(error => {
+                button.disabled = false;
+                button.textContent = originalText;
+                console.error('Error:', error);
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger';
+                alert.textContent = 'Network error occurred.';
+                document.querySelector('.main-content').insertBefore(alert, document.querySelector('.wp-card'));
+                setTimeout(() => alert.remove(), 3000);
+            });
+        });
+    });
+
+    // AJAX for return item form
+    document.querySelectorAll('.return-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const action = this.action;
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Processing...';
+
+            fetch(action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                button.disabled = false;
+                button.textContent = originalText;
+                if (data.success) {
+                    // Update table body
+                    document.getElementById('borrowed-tbody').innerHTML = data.html;
+                    // Show success message
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success';
+                    alert.textContent = data.success;
+                    document.querySelector('.main-content').insertBefore(alert, document.querySelector('.wp-card'));
+                    setTimeout(() => alert.remove(), 3000);
+                } else {
+                    // Show error message
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-danger';
+                    alert.textContent = data.error || 'An error occurred.';
+                    document.querySelector('.main-content').insertBefore(alert, document.querySelector('.wp-card'));
+                    setTimeout(() => alert.remove(), 3000);
+                }
+            })
+            .catch(error => {
+                button.disabled = false;
+                button.textContent = originalText;
+                console.error('Error:', error);
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger';
+                alert.textContent = 'Network error occurred.';
+                document.querySelector('.main-content').insertBefore(alert, document.querySelector('.wp-card'));
+                setTimeout(() => alert.remove(), 3000);
+            });
+        });
+    });
 });
 </script>
 @endsection

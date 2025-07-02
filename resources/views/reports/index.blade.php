@@ -197,7 +197,7 @@
     }
 
     .wp-badge-success {
-        background: #46b450;
+        background: #46 metaspace-youtube-videolink
         color: #fff;
     }
 
@@ -264,8 +264,12 @@
         }
     }
 
-    /* Print Styles */
+    /* Enhanced Print Styles */
     @media print {
+        @page {
+            margin: 0;
+        }
+
         .wp-reports-container {
             background: #fff;
             padding: 0;
@@ -278,6 +282,15 @@
         
         .wp-button-group {
             display: none;
+        }
+
+        /* Ensure only report content is printed */
+        body > * {
+            display: none !important;
+        }
+
+        body .print-content {
+            display: block !important;
         }
     }
 </style>
@@ -330,7 +343,7 @@
             </div>
         </div>
         
-        <div class="wp-card" id="reportContent">
+        <div class="wp-card print-content" id="reportContent">
             <div class="wp-card-header">
                 {{ $report_title }}
                 <div class="wp-report-meta">
@@ -472,19 +485,40 @@ function toggleDateFields(reportType) {
 
 function printReport() {
     const printContent = document.getElementById('reportContent').innerHTML;
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = `
-        <div style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #136735; padding-bottom: 20px;">
-                <h1 style="color: #136735; margin: 0;">SBT Constructions</h1>
-                <p style="color: #666; margin: 5px 0 0 0;">Warehouse Inventory System</p>
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Print Report</title>
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                }
+                @page {
+                    margin: 0;
+                }
+                .print-content {
+                    padding: 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-content">
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #136735; padding-bottom: 20px;">
+                    <h1 style="color: #136735; margin: 0;">SBT Constructions</h1>
+                    <p style="color: #666; margin: 5px 0 0 0;">Warehouse Inventory System</p>
+                </div>
+                ${printContent}
             </div>
-            ${printContent}
-        </div>
-    `;
-    window.print();
-    document.body.innerHTML = originalContent;
-    location.reload();
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
 }
 </script>
 @endsection

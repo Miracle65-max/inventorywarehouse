@@ -23,6 +23,7 @@ Route::get('/barcode/{itemCode}/generate', [App\Http\Controllers\BarcodeControll
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('items', ItemController::class);
+    Route::get('/items/generate-item-code/{category}', [ItemController::class, 'generateItemCode'])->name('items.generate-item-code');
     Route::resource('sales-orders', App\Http\Controllers\SalesOrderController::class);
     Route::resource('suppliers', SupplierController::class);
     Route::resource('audit-trails', App\Http\Controllers\AuditTrailController::class)->only(['index']);
