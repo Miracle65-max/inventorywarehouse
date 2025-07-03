@@ -1,4 +1,4 @@
-@extends('layouts.app')
+ÿþ@extends('layouts.app')
 
 @section('title', 'Edit Item')
 
@@ -112,4 +112,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection  

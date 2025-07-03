@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('content')
+
 {{--
   NOTE: All global design tokens and styles should be in resources/css/app.css and loaded in your layout.
   Only keep page-specific styles here if absolutely necessary.
@@ -159,6 +160,7 @@
         opacity: 0;
     }
 </style>
+
 <div class="main-content">
     <div class="wp-header">
         <h1 class="wp-title">Stock Movements</h1>
